@@ -23,6 +23,7 @@ then
       sudo apt upgrade -y
   fi
   echo "Update Complete!"
+  rm log.txt 
 
 # Optional:  update pop os recovery partition
   echo " "
@@ -41,11 +42,12 @@ then
   else
     echo "Pop!_OS recovery partition not found!"
   fi
+  rm pop-check.txt 
 fi
 
 # pop-upgrade recovery upgrade from-release
-  echo " "
-  echo "Update Complete!"
+echo " "
+echo "Update Complete!"
 
 # Update Flatpak packages
 if [ -d "/usr/share/flatpak" ]
