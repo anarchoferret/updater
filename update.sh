@@ -1,7 +1,6 @@
 #!/bin/sh
 echo "Checking for new software..."
 echo " "
-echo "Changing to root user..."
 
 # update apt repos
 echo " "
@@ -50,7 +49,7 @@ fi
   echo "Leaving root to update Flatpak repo..."
 
 # Update Flatpak packages
-if [ -d "/usr/bin/flatpak" ]
+if [ -d "/usr/share/flatpak" ]
 then
   echo " "
   echo "Checking for Flatpak updates..."
