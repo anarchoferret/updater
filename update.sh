@@ -46,7 +46,6 @@ fi
 # pop-upgrade recovery upgrade from-release
   echo " "
   echo "Update Complete!"
-  echo "Leaving root to update Flatpak repo..."
 
 # Update Flatpak packages
 if [ -d "/usr/share/flatpak" ]
