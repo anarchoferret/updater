@@ -19,10 +19,11 @@ then
     echo "No updates needed through apt."
   else
     echo "APT has updates:  "
-    read -p "Would you like to update these packages? [Y/N]:  " answer1
-    if [ "$answer1" = "Y"]
+    echo "The following prompts will require capital letters"
+    read -p "Would you like to view out of date packages? [Y/N]:  " answer1
+    if [ "$answer1" = "Y" ]
     then
-      apt list --upgradable
+      apt list -a --upgradable
     elif [ "$answer1" = "N" ]
     then
       echo "Upgrades hidden."
@@ -46,7 +47,7 @@ then
 
 # Optional:  update pop os recovery partition
   echo " "
-  echo "Checking if Pop!_OS Recovery partition is found..."
+  echo "Pop!_OS found on system.  Attempting to update recovery partition..."
   if [ -d "/recovery" ]
   then
     pop-upgrade recovery upgrade from-release > pop-check.txt
@@ -55,8 +56,8 @@ then
     then
       echo "Pop!_OS Recovery partition not in use"
     else
-      echo "Updating Pop!_OS Recovery partition"
-      pop-upgrade recovery upgrade from-release
+      echo "Found recovery parition.  Updating..."
+      pop-upgrade recovery upgrade from-release > /dev/null
     fi
   else
     echo "Pop!_OS recovery partition not found!"
@@ -74,7 +75,7 @@ then
   flatcheck="$(grep "Nothing to do."  flatpaklog.txt)"
   if [ "$flatcheck" = "Nothing to do." ]
   then
-    echo "No flatpak updates."
+    echo "No Flatpak updates."
   else
     echo "Flatpak apps updated!"
   fi
