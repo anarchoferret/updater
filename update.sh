@@ -158,7 +158,7 @@ then
     if [ "$FLATPAK_CONSENT" = "Y" ]
     then
       echo "Updating and upgrading.  Please wait..."
-      flatpak update > /dev/null
+      flatpak update -y > /dev/null
       echo "Update Complete!"
     elif [ "$FLATPAK_CONSENT" = "N" ]
     then
