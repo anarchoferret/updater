@@ -32,7 +32,8 @@ then
   DEBIAN_IND=1
 else
   echo "System could not be determined!"
-  read -p "Would you like to update these packages? [Y/N]:  " SYSTEM_INQ
+  echo "Is your distro based off of 'Debian' or"
+  read -p "Arch? [Debian/Arch]:  " SYSTEM_INQ
 
   if [ "$SYSTEM_INQ" = "Arch"]
   then
