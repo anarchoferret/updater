@@ -32,6 +32,20 @@ then
   DEBIAN_IND=1
 else
   echo "System could not be determined!"
+  read -p "Would you like to update these packages? [Y/N]:  " SYSTEM_INQ
+
+  if [ "$SYSTEM_INQ" = "Arch"]
+  then
+    ARCH_IND=1
+    echo "System registered as Arch"
+  elif [ "$SYSTEM_INQ" = "Debian" ]
+  then
+    DEBIAN_IND=1
+    echo "System registered as Debian"
+  else
+    echo "Answer was neither 'Debian' or 'Arch'."
+    echo "WARNING:  Limited functionality.  Flatpak updates only."
+  fi 
 fi
 
 # If the distro is Debian
