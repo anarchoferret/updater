@@ -206,8 +206,7 @@ then
     else
       echo "ERROR:  User input undefined!  Defaulting to 'N'."
     fi
-
-  
+  fi
 fi
 
 # *Optional* Upgrade Snap Packages
