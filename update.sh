@@ -10,7 +10,8 @@ MANJARO_IND=$(whereis pamac | grep -c "pamac: /usr/bin/pamac")
 ARCH_IND=$(whereis pacman | grep -c "pacman: /usr/bin/pacman")
 DEBIAN_IND=$(whereis apt | grep -c "apt: /usr/bin/apt")
 FLATPAK_IND=$(whereis flatpak | grep -c "flatpak: /usr/bin/flatpak")
-SNAP_IND=$(whereis snap | grep -c "snap: /usr/bin/snap")   
+SNAP_IND=$(whereis snap | grep -c "snap: /usr/bin/snap")  
+RHEL_IND=$(whereis dnf | grep -c "dnf: /usr/bin/dnf") 
 
 # Distro Details
 echo "Thank you for using AnarchoFerret's Update Script"
@@ -30,6 +31,8 @@ then
 elif [ $ARCH_IND -gt 0 ]
 then
   echo "This system is Arch"
+elif [ $RHEL_IND -gt 0 ]
+  echo "This is Red Hat / Fedora"
 else
   echo "ERROR:  System cannot be determined!"
 fi
@@ -47,6 +50,10 @@ then
   then
     echo "Pamac (which will be used instead of pacman)"
   fi
+fi
+if [ $RHEL_IND -gt 0 ]
+then
+  echo "DNF (Dandified YUM)"
 fi
 if [ $FLATPAK_IND -gt 0 ]
 then
@@ -167,7 +174,41 @@ then
       fi
     fi
   fi
-fi 
+
+
+# Determine if Distro is RHEL
+elif [ $RHEL_IND -gt 0 ]
+then
+  echo 
+  echo "Checking for updates through DNF.  Please wait..."
+  DNF_UPDATES=$(echo "N" | sudo dnf upgrade | grep -c "Total download size")
+
+  if [ $DNF_UPDATES -gt 0 ]
+  then
+    echo "Updates have been found."
+    read -p "Would you like to view out of date packages? [Y/N]:  " RHEL_CONSENT_1
+    if [ "$RHEL_CONSENT_1" = "Y" ]
+    then
+      sudo dnf check-update
+    elif [ "$RHEL_CONSENT_1" = "N" ]
+    then
+      echo "Not showing updates."
+    else
+      echo "ERROR:  User input undefined!  Defaulting to 'N'."
+    fi
+    read -p "Would you like to update out of date packages? [Y/N]:  " RHEL_CONSENT_2
+    if [ "$RHEL_CONSENT_2" = "Y" ]
+    then
+      echo "Y" | sudo dnf upgrade
+    elif [ "$RHEL_CONSENT_2" = "N" ]
+    then
+      echo "Not showing updates."
+    else
+      echo "ERROR:  User input undefined!  Defaulting to 'N'."
+    fi
+
+  
+fi
 
 # *Optional* Upgrade Snap Packages
 echo
@@ -177,6 +218,7 @@ then
   sudo snap refresh
 fi
 
+# *Optional* Upgrade Flatpak Packages
 if [ $FLATPAK_IND -gt 0 ]
 then
   echo
