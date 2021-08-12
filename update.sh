@@ -3,50 +3,58 @@
 # Release variable
 RELEASE="$(lsb_release -a 2>/dev/null)"
 
-# Distro Indicator Variables
-POP=$(echo "$RELEASE" | grep -c "Pop")
-MANJARO=$(echo "$RELEASE" | grep -c "Manjaro")
-UBUNTU=$(echo "$RELEASE" | grep -c "Ubuntu")
-UBUNTU_IND=0
-POP_IND=0
-MANJARO_IND=0
-ARCH_IND=0
-DEBIAN_IND=0
-FLATPAK_TEST=$(whereis flatpak | grep -c "flatpak: /usr/bin/flatpak /usr/include/flatpak /usr/share/flatpak /usr/share/man/man1/flatpak.1.gz")
+# Indicator Variables
+UBUNTU_IND=$(echo "$RELEASE" | grep -c "Ubuntu")
+POP_IND=$(echo "$RELEASE" | grep -c "Pop")
+MANJARO_IND=$(whereis pamac | grep -c "pamac: /usr/bin/pamac")
+ARCH_IND=$(whereis pacman | grep -c "pacman: /usr/bin/pacman")
+DEBIAN_IND=$(whereis apt | grep -c "apt: /usr/bin/apt")
+FLATPAK_IND=$(whereis flatpak | grep -c "flatpak: /usr/bin/flatpak")
+SNAP_IND=$(whereis snap | grep -c "snap: /usr/bin/snap")   
 
-# Determine the Distro
-if [ $POP -gt 0 ]
+# Distro Details
+echo "Thank you for using AnarchoFerret's Update Script"
+echo
+echo "The script has determined the following:"
+if [ $DEBIAN_IND -gt 0 ]
 then
-  echo "This system is Pop!_OS"
-  POP_IND=1;
-  DEBIAN_IND=1
-elif [ $MANJARO -gt 0 ]
+  echo "This system is Debian"
+  if [ $POP_IND -gt 0 ]
+  then
+    echo "This system is Pop!_OS"
+  fi
+  if [ $UBUNTU_IND -gt 0 ]
+  then
+    echo "This system is Ubuntu"
+  fi
+elif [ $ARCH_IND -gt 0 ]
 then
-  echo "This system is Manjaro"
-  MANJARO_IND=1
-  ARCH_IND=1
-elif [ $UBUNTU -gt 0 ]
-then 
-  echo "This system is Ubuntu"
-  UBUNTU_IND=1
-  DEBIAN_IND=1
+  echo "This system is Arch"
 else
-  echo "System could not be determined!"
-  echo "Is your distro based off of 'Debian' or"
-  read -p "Arch? [Debian/Arch]:  " SYSTEM_INQ
+  echo "ERROR:  System cannot be determined!"
+fi
 
-  if [ "$SYSTEM_INQ" = "Arch"]
+echo 
+echo "Current repos installed:"
+if [ $DEBIAN_IND -gt 0 ]
+then
+  echo "APT (Advanced Package Tool)"
+fi
+if [ $ARCH_IND -gt 0 ]
+then
+  echo "pacman"
+  if [ $MANJARO_IND -gt 0 ]
   then
-    ARCH_IND=1
-    echo "System registered as Arch"
-  elif [ "$SYSTEM_INQ" = "Debian" ]
-  then
-    DEBIAN_IND=1
-    echo "System registered as Debian"
-  else
-    echo "Answer was neither 'Debian' or 'Arch'."
-    echo "WARNING:  Limited functionality.  Flatpak updates only."
-  fi 
+    echo "Pamac (which will be used instead of pacman)"
+  fi
+fi
+if [ $FLATPAK_IND -gt 0 ]
+then
+  echo "Flatpak"
+fi
+if [ $SNAP_IND -gt 0 ]
+then
+  echo "Snap"
 fi
 
 # If the distro is Debian
@@ -54,31 +62,31 @@ if [ $DEBIAN_IND -gt 0 ]
 then
   echo
   echo "Checking for updated APT packages. Please wait..."
-  statement="$(sudo apt update 2>/dev/null | grep "All packages are up to date.")"
+  STATEMENT="$(sudo apt update 2>/dev/null | grep "All packages are up to date.")"
 
 # Upgrade existing APT packages
-  if [ "$statement" = "All packages are up to date." ] # Note:  quotes are needed to denote a string
+  if [ "$STATEMENT" = "All packages are up to date." ] # Note:  quotes are needed to denote a string
   then
     echo "No updates needed through APT."
   else
     echo "APT has updates:  "
     echo "The following prompts will require capital letters"
-    read -p "Would you like to view out of date packages? [Y/N]:  " answer1
-    if [ "$answer1" = "Y" ]
+    read -p "Would you like to view out of date packages? [Y/N]:  " ANSWER_1
+    if [ "$ANSWER_1" = "Y" ]
     then
       apt list -a --upgradable
-    elif [ "$answer1" = "N" ]
+    elif [ "$ANSWER_1" = "N" ]
     then
       echo "Upgrades hidden."
     else
       echo "User input not understood.  Defaulting to 'No' to save space."
     fi
 
-    read -p "Would you like to update these packages? [Y/N]:  " answer2
-    if [ "$answer2" = "Y" ]
+    read -p "Would you like to update these packages? [Y/N]:  " ANSWER_2
+    if [ "$ANSWER_2" = "Y" ]
     then
-      sudo apt-get upgrade -y > /dev/null
-    elif [ "$answer2" = "N" ]
+      sudo apt-get upgrade -y
+    elif [ "$ANSWER_2" = "N" ]
     then
       echo "Update Canceled"
     else
@@ -87,14 +95,8 @@ then
   fi
   echo "Update Complete!"
 
-  # *Optional* Upgrade Ubuntu Snap Packages
-  if [ $UBUNTU_IND -gt 0 ]
-  then
-    echo "Updating Snap Packages"
-    sudo snap refresh
-
   # *Optional* Upgrade Pop!_OS Recovery Partition
-  elif [ $POP_IND -gt 0 ]
+  if [ $POP_IND -gt 0 ]
   then
     echo
     echo "Pop!_OS found on system.  Attempting to update recovery partition..."
@@ -132,6 +134,8 @@ then
   else # Vanilla Arch update
     ARCH_UPDATES="$(sudo pacman -Qu)"
 
+    echo
+
     if [ "$ARCH_UPDATES" = "" ]
     then
       echo "No updates required."
@@ -141,7 +145,7 @@ then
       read -p "Would you like to view out of date packages? [Y/N]:  " ARCH_CONSENT
       if [ "$ARCH_CONSENT" = "Y" ]
       then
-        echo "$ARCH_UPDATES"
+        sudo pacman -Qu
       elif [ "$ARCH_CONSENT" = "N" ]
       then
         echo "Not showing updates."
@@ -165,39 +169,28 @@ then
   fi
 fi 
 
-if [ $FLATPAK_TEST -gt 0 ]
+# *Optional* Upgrade Snap Packages
+echo
+if [ $SNAP_IND -gt 0 ]
 then
-    echo
-    echo "Flatpak is installed!"
-    read -p "Would you like to update and upgrade? [Y/N]:  " FLATPAK_CONSENT
-    if [ "$FLATPAK_CONSENT" = "Y" ]
-    then
-      echo "Updating and upgrading.  Please wait..."
-      flatpak update -y > /dev/null
-      echo "Update Complete!"
-    elif [ "$FLATPAK_CONSENT" = "N" ]
-    then
-      echo "Update cancelled."
-    else
-      echo "User input not defined.  Defaulting to 'N'."
-    fi
+  echo "Updating Snap Packages"
+  sudo snap refresh
+fi
 
-else
-    echo "Flatpak is not installed."
-    echo "To install Flatpak, please enter the following command:"
-
-    if [ $DEBIAN_IND = 1 ]
-    then
-      echo "sudo apt install flatpak && flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo"
-      echo "..."
-      echo "then reboot!"
-    elif [ $ARCH_IND = 1 ]
-    then
-      echo "sudo pacman -S flatpak && && flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo"
-      echo "..."
-      echo "then reboot!"
-    else
-      echo "Error:  System Unknown!"
-    fi
+if [ $FLATPAK_IND -gt 0 ]
+then
+  echo
+  read -p "Would you like to search for and apply Flatpak app updates? [Y/N]:  " FLATPAK_CONSENT
+  if [ "$FLATPAK_CONSENT" = "Y" ]
+  then
+    echo "Updating and upgrading.  Please wait..."
+    flatpak update -y
+    echo "Update Complete!"
+  elif [ "$FLATPAK_CONSENT" = "N" ]
+  then
+    echo "Update cancelled."
+  else
+    echo "User input not defined.  Defaulting to 'N'."
+  fi
 fi
 exit
