@@ -1,4 +1,4 @@
 # updater
-Simple update script for Linux systems.  Currently works for Debian based systems, and has Flatpak support
+Simple update script for Linux systems.  
 
-Current Dependencies: sudo; apt; flatpak
+This is the latest version.  Bugs are gonna happen.  Be sure to report them.
