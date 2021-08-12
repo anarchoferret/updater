@@ -1,4 +1,4 @@
 # updater
-Simple update script for Linux systems.  Currently works for Debian based systems, and has Flatpak support
+Simple update script for Linux systems.  Currently works for Debian and Arch based systems.  Includes Flatpak, Snap, pamac, and pacman support.
 
-Current Dependencies: sudo; apt; flatpak
+
