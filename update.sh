@@ -196,7 +196,7 @@ elif [ $RHEL_IND -gt 0 ]
 then
   echo 
   echo "Checking for updates through DNF.  Please wait..."
-  DNF_UPDATES=$(echo "N" | sudo dnf upgrade | grep -c "Total download size")
+  DNF_UPDATES=$((echo "N" | sudo dnf upgrade) | grep -c "Total download size")
 
   if [ $DNF_UPDATES -gt 0 ]
   then
@@ -204,13 +204,14 @@ then
     read -p "Would you like to view out of date packages? [Y/N]:  " RHEL_CONSENT_1
     if [ "$RHEL_CONSENT_1" = "Y" ]
     then
-      sudo dnf check-update
+      echo "Y" | sudo dnf upgrade
     elif [ "$RHEL_CONSENT_1" = "N" ]
     then
       echo "Not showing updates."
     else
       echo "ERROR:  User input undefined!  Defaulting to 'N'."
     fi
+    
     read -p "Would you like to update out of date packages? [Y/N]:  " RHEL_CONSENT_2
     if [ "$RHEL_CONSENT_2" = "Y" ]
     then
@@ -221,6 +222,8 @@ then
     else
       echo "ERROR:  User input undefined!  Defaulting to 'N'."
     fi
+  else
+    echo "No updates at this time."
   fi
 fi
 
