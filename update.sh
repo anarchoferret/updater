@@ -1,5 +1,19 @@
 #!/bin/sh
 
+# Debugging Arguments
+DEBUG=0
+if [ "$1" = "-h" ]
+then
+  echo "Available Commands:"
+  echo "-h:  Show help"
+  echo "-d:  Turn on debugging"
+  exit
+elif [ "$1" = "-d" ]
+then
+  echo "Debugging enabled"
+  DEBUG=1
+fi
+
 # Release variable
 RELEASE="$(lsb_release -a 2>/dev/null)"
 
@@ -32,6 +46,7 @@ elif [ $ARCH_IND -gt 0 ]
 then
   echo "This system is Arch"
 elif [ $RHEL_IND -gt 0 ]
+then
   echo "This is Red Hat / Fedora"
 else
   echo "ERROR:  System cannot be determined!"
@@ -210,9 +225,9 @@ then
 fi
 
 # *Optional* Upgrade Snap Packages
-echo
 if [ $SNAP_IND -gt 0 ]
 then
+  echo
   echo "Updating Snap Packages"
   sudo snap refresh
 fi
