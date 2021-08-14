@@ -36,11 +36,11 @@ then
   echo "This system is Debian"
   if [ $POP_IND -gt 0 ]
   then
-    echo "This system is Pop!_OS"
+    echo "The Distro is Pop!_OS"
   fi
   if [ $UBUNTU_IND -gt 0 ]
   then
-    echo "This system is Ubuntu"
+    echo "This Distro is Ubuntu"
   fi
 elif [ $ARCH_IND -gt 0 ]
 then
@@ -196,7 +196,7 @@ elif [ $RHEL_IND -gt 0 ]
 then
   echo 
   echo "Checking for updates through DNF.  Please wait..."
-  DNF_UPDATES=$((echo "N" | sudo dnf upgrade) | grep -c "Total download size")
+  DNF_UPDATES=$(echo "N" | sudo dnf upgrade | grep -c "Total download size")
 
   if [ $DNF_UPDATES -gt 0 ]
   then
