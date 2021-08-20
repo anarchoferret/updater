@@ -84,7 +84,7 @@ if [ $DEBIAN_IND -gt 0 ]
 then
   echo
   echo "Checking for updated APT packages. Please wait..."
-  STATEMENT="$(sudo apt update 2>/dev/null | grep "All packages are up to date.")"
+  STATEMENT="$(pkexec sudo apt update 2>/dev/null | grep "All packages are up to date.")"
 
 # Upgrade existing APT packages
   if [ "$STATEMENT" = "All packages are up to date." ] # Note:  quotes are needed to denote a string
@@ -107,7 +107,7 @@ then
     read -p "Would you like to update these packages? [Y/N]:  " ANSWER_2
     if [ "$ANSWER_2" = "Y" ]
     then
-      sudo apt-get upgrade -y
+      pkexec sudo apt-get upgrade -y
     elif [ "$ANSWER_2" = "N" ]
     then
       echo "Update Canceled"
@@ -126,7 +126,7 @@ then
     if [ -d "/recovery" ] # If the recovery folder is found
     then
       # Check and apply upgrades
-      pop_check="$(pop-upgrade recovery upgrade from-release | grep -c "recovery partition was not found")"
+      pop_check="$(pkexec pop-upgrade recovery upgrade from-release | grep -c "recovery partition was not found")"
     
       # Interpret the answer for the user
       if [ "$pop_check" = "1" ]
@@ -204,7 +204,7 @@ then
     read -p "Would you like to view out of date packages? [Y/N]:  " RHEL_CONSENT_1
     if [ "$RHEL_CONSENT_1" = "Y" ]
     then
-      echo "Y" | sudo dnf upgrade
+      echo "N" | sudo dnf upgrade
     elif [ "$RHEL_CONSENT_1" = "N" ]
     then
       echo "Not showing updates."
@@ -215,7 +215,7 @@ then
     read -p "Would you like to update out of date packages? [Y/N]:  " RHEL_CONSENT_2
     if [ "$RHEL_CONSENT_2" = "Y" ]
     then
-      echo "Y" | sudo dnf upgrade
+      echo "Y" | pkexec sudo dnf upgrade
     elif [ "$RHEL_CONSENT_2" = "N" ]
     then
       echo "Not showing updates."
@@ -232,7 +232,7 @@ if [ $SNAP_IND -gt 0 ]
 then
   echo
   echo "Updating Snap Packages"
-  sudo snap refresh
+  pkexec sudo snap refresh
 fi
 
 # *Optional* Upgrade Flatpak Packages
