@@ -84,7 +84,7 @@ if [ $DEBIAN_IND -gt 0 ]
 then
   echo
   echo "Checking for updated APT packages. Please wait..."
-  STATEMENT="$(pkexec sudo apt update 2>/dev/null | grep "All packages are up to date.")"
+  STATEMENT="$(pkexec apt update 2>/dev/null | grep "All packages are up to date.")"
 
 # Upgrade existing APT packages
   if [ "$STATEMENT" = "All packages are up to date." ] # Note:  quotes are needed to denote a string
@@ -96,7 +96,7 @@ then
     read -p "Would you like to view out of date packages? [Y/N]:  " ANSWER_1
     if [ "$ANSWER_1" = "Y" ]
     then
-      apt list -a --upgradable
+      apt-get list -a --upgradable
     elif [ "$ANSWER_1" = "N" ]
     then
       echo "Upgrades hidden."
@@ -107,7 +107,7 @@ then
     read -p "Would you like to update these packages? [Y/N]:  " ANSWER_2
     if [ "$ANSWER_2" = "Y" ]
     then
-      pkexec sudo apt-get upgrade -y
+      pkexec apt-get upgrade -y
     elif [ "$ANSWER_2" = "N" ]
     then
       echo "Update Canceled"
@@ -154,7 +154,7 @@ then
     pamac update
 
   else # Vanilla Arch update
-    ARCH_UPDATES="$(sudo pacman -Qu)"
+    ARCH_UPDATES="$(pkexec pacman -Qu)"
 
     echo
 
@@ -167,7 +167,7 @@ then
       read -p "Would you like to view out of date packages? [Y/N]:  " ARCH_CONSENT
       if [ "$ARCH_CONSENT" = "Y" ]
       then
-        sudo pacman -Qu
+        pkexec pacman -Qu
       elif [ "$ARCH_CONSENT" = "N" ]
       then
         echo "Not showing updates."
@@ -179,7 +179,7 @@ then
       if [ "$ARCH_CONSENT_UPDATE" = "Y" ]
       then
        echo "Downloading and applying updates.  Please wait..."
-       sudo pacman -Syu > /dev/null
+       pkexec pacman -Syu > /dev/null
        echo "Updates complete!"
       elif [ "$ARCH_CONSENT_UPDATE" = "N" ]
       then
@@ -196,7 +196,7 @@ elif [ $RHEL_IND -gt 0 ]
 then
   echo 
   echo "Checking for updates through DNF.  Please wait..."
-  DNF_UPDATES=$(echo "N" | sudo dnf upgrade | grep -c "Total download size")
+  DNF_UPDATES=$(echo "N" | pkexec dnf upgrade | grep -c "Total download size")
 
   if [ $DNF_UPDATES -gt 0 ]
   then
@@ -204,7 +204,7 @@ then
     read -p "Would you like to view out of date packages? [Y/N]:  " RHEL_CONSENT_1
     if [ "$RHEL_CONSENT_1" = "Y" ]
     then
-      echo "N" | sudo dnf upgrade
+      echo "Y" | pkexec dnf upgrade
     elif [ "$RHEL_CONSENT_1" = "N" ]
     then
       echo "Not showing updates."
@@ -215,7 +215,7 @@ then
     read -p "Would you like to update out of date packages? [Y/N]:  " RHEL_CONSENT_2
     if [ "$RHEL_CONSENT_2" = "Y" ]
     then
-      echo "Y" | pkexec sudo dnf upgrade
+      echo "Y" | pkexec dnf upgrade
     elif [ "$RHEL_CONSENT_2" = "N" ]
     then
       echo "Not showing updates."
@@ -232,7 +232,7 @@ if [ $SNAP_IND -gt 0 ]
 then
   echo
   echo "Updating Snap Packages"
-  pkexec sudo snap refresh
+  pkexec snap refresh
 fi
 
 # *Optional* Upgrade Flatpak Packages
