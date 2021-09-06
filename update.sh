@@ -96,7 +96,7 @@ then
     read -p "Would you like to view out of date packages? [Y/N]:  " ANSWER_1
     if [ "$ANSWER_1" = "Y" ]
     then
-      apt-get list -a --upgradable
+      apt list -a --upgradable
     elif [ "$ANSWER_1" = "N" ]
     then
       echo "Upgrades hidden."
