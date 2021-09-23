@@ -107,7 +107,7 @@ then
     read -p "Would you like to update these packages? [Y/N]:  " ANSWER_2
     if [ "$ANSWER_2" = "Y" ]
     then
-      pkexec apt-get upgrade -y
+      pkexec apt-get dist-upgrade -y
     elif [ "$ANSWER_2" = "N" ]
     then
       echo "Update Canceled"
