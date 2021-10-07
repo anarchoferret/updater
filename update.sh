@@ -1,7 +1,84 @@
 #!/bin/sh
 
+update_debian()
+{
+  case $1 in
+    Y)
+      pkexec apt-get dist-upgrade -y
+      ;;
+    N)
+      echo "Update Canceled"
+      ;;
+    *)
+      echo "User input not understood.  Assuming no updates wanted."
+      ;;
+  esac
+}
+
+list_debian_updates()
+{
+  case $1 in
+    Y)
+      apt list -a --upgradable
+      ;;
+    N)
+      echo "Upgrades hidden."
+      ;;
+    *)
+      echo "User input not understood.  Defaulting to 'No' to save space."
+      ;;
+  esac
+}
+
+pop_recovery_upgrade()
+{
+  case $1 in
+    Y)
+      if [ -d "/recovery" ] # If the recovery folder is found
+      then
+        # Check and apply upgrades
+        pop_check="$(pkexec pop-upgrade recovery upgrade from-release | grep -c "recovery partition was not found")"
+    
+        # Interpret the answer for the user
+        if [ "$pop_check" = "1" ]
+        then
+          echo "Pop!_OS Recovery partition not in use"
+        else
+          echo "Found recovery parition.  Update applied, if needed."
+        fi
+      else # If the recovery folder is not found
+        echo "Pop!_OS recovery partition not found!"
+      fi
+      ;;
+    N)
+      echo "Pop!_OS recovery partition not updated."
+      ;;
+    *)
+      echo "User input not understood.  Recovery partition not updated."
+      ;;
+  esac
+}
+
+flatpak_update()
+{
+  case $1 in
+    Y)
+      echo "Updating and upgrading.  Please wait..."
+      flatpak update -y
+      echo "Update Complete!"
+      ;;
+    N)
+      echo "Update cancelled."
+      ;;
+    *)
+      echo "User input not defined.  Defaulting to 'N'."
+      ;;
+  esac
+}
+
 # Debugging Arguments
 DEBUG=0
+
 if [ "$1" = "-h" ]
 then
   echo "Available Commands:"
@@ -16,7 +93,7 @@ fi
 
 # Release variable
 RELEASE="$(lsb_release -a 2>/dev/null)"
-
+  
 # Indicator Variables
 UBUNTU_IND=$(echo "$RELEASE" | grep -c "Ubuntu")
 POP_IND=$(echo "$RELEASE" | grep -c "Pop")
@@ -86,59 +163,30 @@ then
   echo "Checking for updated APT packages. Please wait..."
   STATEMENT="$(pkexec apt update 2>/dev/null | grep "All packages are up to date.")"
 
-# Upgrade existing APT packages
+  # Upgrade existing APT packages
   if [ "$STATEMENT" = "All packages are up to date." ] # Note:  quotes are needed to denote a string
   then
     echo "No updates needed through APT."
   else
-    echo "APT has updates:  "
-    echo "The following prompts will require capital letters"
+    echo "APT has updates:"
     read -p "Would you like to view out of date packages? [Y/N]:  " ANSWER_1
-    if [ "$ANSWER_1" = "Y" ]
-    then
-      apt list -a --upgradable
-    elif [ "$ANSWER_1" = "N" ]
-    then
-      echo "Upgrades hidden."
-    else
-      echo "User input not understood.  Defaulting to 'No' to save space."
-    fi
+    ANSWER_1=$(echo "$ANSWER_1" | tr [a-z] [A-Z])
+    list_debian_updates $ANSWER_1
 
     read -p "Would you like to update these packages? [Y/N]:  " ANSWER_2
-    if [ "$ANSWER_2" = "Y" ]
-    then
-      pkexec apt-get dist-upgrade -y
-    elif [ "$ANSWER_2" = "N" ]
-    then
-      echo "Update Canceled"
-    else
-      echo "User input not understood.  Assuming no updates wanted."
-    fi
+    ANSWER_2=$(echo "$ANSWER_2" | tr [a-z] [A-Z])
+    update_debian $ANSWER_2 
+    
   fi
-  echo "Update Complete!"
+  echo "Updates through APT Complete."
 
   # *Optional* Upgrade Pop!_OS Recovery Partition
   if [ $POP_IND -gt 0 ]
   then
     echo
-    echo "Pop!_OS found on system.  Attempting to update recovery partition..."
-
-    if [ -d "/recovery" ] # If the recovery folder is found
-    then
-      # Check and apply upgrades
-      pop_check="$(pkexec pop-upgrade recovery upgrade from-release | grep -c "recovery partition was not found")"
-    
-      # Interpret the answer for the user
-      if [ "$pop_check" = "1" ]
-      then
-        echo "Pop!_OS Recovery partition not in use"
-      else
-        echo "Found recovery parition.  Update applied, if needed."
-      fi
-
-    else # If the recovery folder is not found
-      echo "Pop!_OS recovery partition not found!"
-    fi
+    read -p "Pop!_OS found on system.  Attempt to update recovery partition?  [Y/N]:  " POP_CONSENT
+    POP_CONSENT=$(echo "$POP_CONSENT" | tr [a-z] [A-Z])
+    pop_recovery_upgrade $POP_CONSENT
   fi
 
 # Determine if Distro is Arch
@@ -240,16 +288,7 @@ if [ $FLATPAK_IND -gt 0 ]
 then
   echo
   read -p "Would you like to search for and apply Flatpak app updates? [Y/N]:  " FLATPAK_CONSENT
-  if [ "$FLATPAK_CONSENT" = "Y" ]
-  then
-    echo "Updating and upgrading.  Please wait..."
-    flatpak update -y
-    echo "Update Complete!"
-  elif [ "$FLATPAK_CONSENT" = "N" ]
-  then
-    echo "Update cancelled."
-  else
-    echo "User input not defined.  Defaulting to 'N'."
-  fi
+  FLATPAK_CONSENT=$(echo "$FLATPAK_CONSENT" | tr [a-z] [A-Z])
+  flatpak_update $FLATPAK_CONSENT
 fi
 exit
