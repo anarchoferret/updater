@@ -1,4 +1,15 @@
 #!/bin/sh
+find_bin()
+{
+    temp_var=$(whereis $1 | grep -c "/usr/bin/$1")
+
+    if [ $temp_var -gt 0 ]
+    then
+        echo "1"
+    else
+        echo "0"
+    fi
+}
 
 update_debian()
 {
@@ -65,7 +76,7 @@ flatpak_update()
     Y)
       echo "Updating and upgrading.  Please wait..."
       flatpak update -y
-      echo "Update Complete!"
+      echo "Flatpak updates complete!"
       ;;
     N)
       echo "Update cancelled."
@@ -98,17 +109,18 @@ RELEASE="$(lsb_release -a 2>/dev/null)"
 UBUNTU_IND=$(echo "$RELEASE" | grep -c "Ubuntu")
 POP_IND=$(echo "$RELEASE" | grep -c "Pop")
 MANJARO_IND=$(whereis pamac | grep -c "pamac: /usr/bin/pamac")
-ARCH_IND=$(whereis pacman | grep -c "pacman: /usr/bin/pacman")
-DEBIAN_IND=$(whereis apt | grep -c "apt: /usr/bin/apt")
-FLATPAK_IND=$(whereis flatpak | grep -c "flatpak: /usr/bin/flatpak")
-SNAP_IND=$(whereis snap | grep -c "snap: /usr/bin/snap")  
-RHEL_IND=$(whereis dnf | grep -c "dnf: /usr/bin/dnf") 
+# ARCH_IND=$(whereis pacman | grep -c "pacman: /usr/bin/pacman") 
+# DEBIAN_IND=$(whereis apt | grep -c "apt: /usr/bin/apt")
+# FLATPAK_IND=$(whereis flatpak | grep -c "flatpak: /usr/bin/flatpak")
+# SNAP_IND=$(whereis snap | grep -c "snap: /usr/bin/snap")  
+# RHEL_IND=$(whereis dnf | grep -c "dnf: /usr/bin/dnf") 
+# These were replaced with the find_bin function
 
 # Distro Details
 echo "Thank you for using AnarchoFerret's Update Script"
 echo
 echo "The script has determined the following:"
-if [ $DEBIAN_IND -gt 0 ]
+if [ $(find_bin apt) -gt 0 ]
 then
   echo "This system is Debian"
   if [ $POP_IND -gt 0 ]
@@ -119,10 +131,10 @@ then
   then
     echo "This Distro is Ubuntu"
   fi
-elif [ $ARCH_IND -gt 0 ]
+elif [ $(find_bin pacman) -gt 0 ]
 then
   echo "This system is Arch"
-elif [ $RHEL_IND -gt 0 ]
+elif [ $(find_bin dnf) -gt 0 ]
 then
   echo "This is Red Hat / Fedora"
 else
@@ -131,11 +143,11 @@ fi
 
 echo 
 echo "Current repos installed:"
-if [ $DEBIAN_IND -gt 0 ]
+if [ $(find_bin apt) -gt 0 ]
 then
   echo "APT (Advanced Package Tool)"
 fi
-if [ $ARCH_IND -gt 0 ]
+if [ $(find_bin pacman) -gt 0 ]
 then
   echo "pacman"
   if [ $MANJARO_IND -gt 0 ]
@@ -143,21 +155,21 @@ then
     echo "Pamac (which will be used instead of pacman)"
   fi
 fi
-if [ $RHEL_IND -gt 0 ]
+if [ $(find_bin dnf) -gt 0 ]
 then
   echo "DNF (Dandified YUM)"
 fi
-if [ $FLATPAK_IND -gt 0 ]
+if [ $(find_bin flatpak) -gt 0 ]
 then
   echo "Flatpak"
 fi
-if [ $SNAP_IND -gt 0 ]
+if [ $(find_bin snap) -gt 0 ]
 then
   echo "Snap"
 fi
 
 # If the distro is Debian
-if [ $DEBIAN_IND -gt 0 ]
+if [ $(find_bin apt) -gt 0 ]
 then
   echo
   echo "Checking for updated APT packages. Please wait..."
@@ -240,7 +252,7 @@ then
 
 
 # Determine if Distro is RHEL
-elif [ $RHEL_IND -gt 0 ]
+elif [ $(find_bin dnf) -gt 0 ]
 then
   echo 
   echo "Checking for updates through DNF.  Please wait..."
@@ -276,7 +288,7 @@ then
 fi
 
 # *Optional* Upgrade Snap Packages
-if [ $SNAP_IND -gt 0 ]
+if [ $(find_bin snap) -gt 0 ]
 then
   echo
   echo "Updating Snap Packages"
@@ -284,7 +296,7 @@ then
 fi
 
 # *Optional* Upgrade Flatpak Packages
-if [ $FLATPAK_IND -gt 0 ]
+if [ $(find_bin flatpak) -gt 0 ]
 then
   echo
   read -p "Would you like to search for and apply Flatpak app updates? [Y/N]:  " FLATPAK_CONSENT
