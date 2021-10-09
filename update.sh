@@ -99,6 +99,59 @@ flatpak_update()
   esac
 }
 
+automated_install()
+{
+  if [ $(find_bin apt) -gt 0 ]
+  then
+    local deb_temp="$(pkexec apt update 2>/dev/null | grep "All packages are up to date.")"
+    if [ "$deb_temp" = "All packages are up to date." ]
+    then
+      echo "No updates needed through APT."
+    else
+      update_debian Y 
+    fi 
+
+    if [ $(determine_distro Pop) -gt 0 ]
+    then
+      pop_recovery_upgrade Y 
+    fi
+  elif [ $(find_bin pacman) -gt 0 ]
+  then
+    if [ $(find_bin pamac) -gt 0 ]
+    then
+      pamac update 
+    else
+      local arch_temp="$(pkexec pacman -Qu)"
+      if [ "$ARCH_UPDATES" = "" ]
+      then
+        echo "No updates through pacman."
+      else
+        pkexec pacman -Syu
+      fi
+    fi
+  elif [ $(find_bin dnf) -gt 0 ]
+  then
+    local RHEL_temp=$(echo "N" | pkexec dnf upgrade | grep -c "Total download size")
+
+    if [ $DNF_UPDATES -gt 0 ]
+    then
+      echo "Y" | pkexec dnf upgrade
+    else
+      echo "No updates through DNF."
+    fi
+  fi
+
+  if [ $(find_bin snap) -gt 0 ]
+  then
+    pkexec snap refresh
+  fi
+
+  if [ $(find_bin flatpak) -gt 0 ]
+  then
+    flatpak_update Y 
+  fi
+}
+
 # Debugging Arguments
 DEBUG=0
 
@@ -112,10 +165,15 @@ elif [ "$1" = "-d" ]
 then
   echo "Debugging enabled"
   DEBUG=1
+elif [ "$1" = "-auto-upgrade" ]
+then
+  automated_install
+  exit
 fi
 
 # Release variable
 # RELEASE="$(lsb_release -a 2>/dev/null)"
+# This was replaced by the determine_distro function
   
 # Indicator Variables
 # UBUNTU_IND=$(echo "$RELEASE" | grep -c "Ubuntu")
