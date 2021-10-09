@@ -86,7 +86,6 @@ flatpak_update()
 {
   case $1 in
     Y)
-      echo "Updating and upgrading.  Please wait..."
       flatpak update -y
       echo "Flatpak updates complete!"
       ;;
@@ -101,6 +100,8 @@ flatpak_update()
 
 automated_install()
 {
+  echo "Thank you for using AnarchoFerret's Update Script"
+
   if [ $(find_bin apt) -gt 0 ]
   then
     local deb_temp="$(pkexec apt update 2>/dev/null | grep "All packages are up to date.")"
@@ -150,6 +151,8 @@ automated_install()
   then
     flatpak_update Y 
   fi
+
+  echo "All repos updated!"
 }
 
 # Debugging Arguments
@@ -159,6 +162,7 @@ if [ "$1" = "-h" ]
 then
   echo "Available Commands:"
   echo "-h:  Show help"
+  echo "-auto-upgrade:  perform a relatively silent update."
   echo "-d:  Turn on debugging"
   exit
 elif [ "$1" = "-d" ]
@@ -370,6 +374,7 @@ if [ $(find_bin flatpak) -gt 0 ]
 then
   echo
   read -p "Would you like to search for and apply Flatpak app updates? [Y/N]:  " FLATPAK_CONSENT
+  echo "Updating and upgrading.  Please wait..."
   FLATPAK_CONSENT=$(echo "$FLATPAK_CONSENT" | tr [a-z] [A-Z])
   flatpak_update $FLATPAK_CONSENT
 fi
