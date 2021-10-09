@@ -1,14 +1,26 @@
 #!/bin/sh
 find_bin()
 {
-    temp_var=$(whereis $1 | grep -c "/usr/bin/$1")
+  local temp_var=$(whereis $1 | grep -c "/usr/bin/$1")
 
-    if [ $temp_var -gt 0 ]
-    then
-        echo "1"
-    else
-        echo "0"
-    fi
+  if [ $temp_var -gt 0 ]
+  then
+    echo "1"
+  else
+    echo "0"
+  fi
+}
+
+determine_distro()
+{
+  local temp_var=$(lsb_release -a 2>/dev/null | grep -c "$1")
+
+  if [ $temp_var -gt 0 ]
+  then
+    echo "1"
+  else
+    echo "0"
+  fi
 }
 
 update_debian()
@@ -103,12 +115,12 @@ then
 fi
 
 # Release variable
-RELEASE="$(lsb_release -a 2>/dev/null)"
+# RELEASE="$(lsb_release -a 2>/dev/null)"
   
 # Indicator Variables
-UBUNTU_IND=$(echo "$RELEASE" | grep -c "Ubuntu")
-POP_IND=$(echo "$RELEASE" | grep -c "Pop")
-MANJARO_IND=$(whereis pamac | grep -c "pamac: /usr/bin/pamac")
+# UBUNTU_IND=$(echo "$RELEASE" | grep -c "Ubuntu")
+# POP_IND=$(echo "$RELEASE" | grep -c "Pop")
+# MANJARO_IND=$(whereis pamac | grep -c "pamac: /usr/bin/pamac")
 # ARCH_IND=$(whereis pacman | grep -c "pacman: /usr/bin/pacman") 
 # DEBIAN_IND=$(whereis apt | grep -c "apt: /usr/bin/apt")
 # FLATPAK_IND=$(whereis flatpak | grep -c "flatpak: /usr/bin/flatpak")
@@ -123,11 +135,11 @@ echo "The script has determined the following:"
 if [ $(find_bin apt) -gt 0 ]
 then
   echo "This system is Debian"
-  if [ $POP_IND -gt 0 ]
+  if [ $(determine_distro Pop) -gt 0 ]
   then
     echo "The Distro is Pop!_OS"
   fi
-  if [ $UBUNTU_IND -gt 0 ]
+  if [ $(determine_distro Ubuntu) -gt 0 ]
   then
     echo "This Distro is Ubuntu"
   fi
@@ -150,7 +162,7 @@ fi
 if [ $(find_bin pacman) -gt 0 ]
 then
   echo "pacman"
-  if [ $MANJARO_IND -gt 0 ]
+  if [ $(find_bin pamac) -gt 0 ]
   then
     echo "Pamac (which will be used instead of pacman)"
   fi
@@ -193,7 +205,7 @@ then
   echo "Updates through APT Complete."
 
   # *Optional* Upgrade Pop!_OS Recovery Partition
-  if [ $POP_IND -gt 0 ]
+  if [ $(determine_distro Pop) -gt 0 ]
   then
     echo
     read -p "Pop!_OS found on system.  Attempt to update recovery partition?  [Y/N]:  " POP_CONSENT
@@ -202,11 +214,11 @@ then
   fi
 
 # Determine if Distro is Arch
-elif [ $ARCH_IND -gt 0 ]
+elif [ $(find_bin pacman) -gt 0 ]
 then
   
   # First check for Manjaro | Use Pamac update
-  if [ $MANJARO_IND -gt 0 ]
+  if [ $(find_bin pamac) -gt 0 ]
   then
     echo
     echo "Running Manjaro Update script.  This will update both"
