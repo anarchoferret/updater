@@ -11,6 +11,11 @@ find_bin()
   fi
 }
 
+capitalize()
+{
+  echo "$1" | tr [a-z] [A-Z]
+}
+
 determine_distro()
 {
   local temp_var=$(lsb_release -a 2>/dev/null | grep -c "$1")
@@ -21,6 +26,37 @@ determine_distro()
   else
     echo "0"
   fi
+}
+
+dnf_list_updates()
+{
+  case $1 in
+    Y)
+      dnf list --upgrades
+      ;;
+    N)
+      echo "Not showing updates."
+      ;;
+    *)
+      echo "User input not defined.  Defaulting to 'N'."
+      ;;
+  esac
+}
+
+dnf_upgrade()
+{
+  case $1 in
+    Y)
+      echo "Y" | pkexec dnf upgrade
+      echo "DNF updates complete!"
+      ;;
+    N)
+      echo "Not showing updates."
+      ;;
+    *)
+      echo "User input not defined.  Defaulting to 'N'."
+      ;;
+  esac
 }
 
 update_debian()
@@ -78,6 +114,22 @@ pop_recovery_upgrade()
       ;;
     *)
       echo "User input not understood.  Recovery partition not updated."
+      ;;
+  esac
+}
+
+snap_update()
+{
+  case $1 in
+    Y)
+      pkexec snap refresh
+      echo "Snap updates complete!"
+      ;;
+    N)
+      echo "Update cancelled."
+      ;;
+    *)
+      echo "User input not defined.  Defaulting to 'N'."
       ;;
   esac
 }
@@ -175,20 +227,6 @@ then
   exit
 fi
 
-# Release variable
-# RELEASE="$(lsb_release -a 2>/dev/null)"
-# This was replaced by the determine_distro function
-  
-# Indicator Variables
-# UBUNTU_IND=$(echo "$RELEASE" | grep -c "Ubuntu")
-# POP_IND=$(echo "$RELEASE" | grep -c "Pop")
-# MANJARO_IND=$(whereis pamac | grep -c "pamac: /usr/bin/pamac")
-# ARCH_IND=$(whereis pacman | grep -c "pacman: /usr/bin/pacman") 
-# DEBIAN_IND=$(whereis apt | grep -c "apt: /usr/bin/apt")
-# FLATPAK_IND=$(whereis flatpak | grep -c "flatpak: /usr/bin/flatpak")
-# SNAP_IND=$(whereis snap | grep -c "snap: /usr/bin/snap")  
-# RHEL_IND=$(whereis dnf | grep -c "dnf: /usr/bin/dnf") 
-# These were replaced with the find_bin function
 
 # Distro Details
 echo "Thank you for using AnarchoFerret's Update Script"
@@ -256,11 +294,11 @@ then
   else
     echo "APT has updates:"
     read -p "Would you like to view out of date packages? [Y/N]:  " ANSWER_1
-    ANSWER_1=$(echo "$ANSWER_1" | tr [a-z] [A-Z])
+    ANSWER_1=$(capitalize $ANSWER_1)
     list_debian_updates $ANSWER_1
 
     read -p "Would you like to update these packages? [Y/N]:  " ANSWER_2
-    ANSWER_2=$(echo "$ANSWER_2" | tr [a-z] [A-Z])
+    ANSWER_2=$(capitalize $ANSWER_2)
     update_debian $ANSWER_2 
     
   fi
@@ -271,7 +309,7 @@ then
   then
     echo
     read -p "Pop!_OS found on system.  Attempt to update recovery partition?  [Y/N]:  " POP_CONSENT
-    POP_CONSENT=$(echo "$POP_CONSENT" | tr [a-z] [A-Z])
+    POP_CONSENT=$(capitalize $POP_CONSENT)
     pop_recovery_upgrade $POP_CONSENT
   fi
 
@@ -299,6 +337,7 @@ then
     else
       echo "There are updates."
       read -p "Would you like to view out of date packages? [Y/N]:  " ARCH_CONSENT
+      ARCH_CONSENT=$(capitalize $ARCH_CONSENT)
       if [ "$ARCH_CONSENT" = "Y" ]
       then
         pkexec pacman -Qu
@@ -310,6 +349,7 @@ then
       fi
 
       read -p "Would you like to download and install updates? [Y/N]:  " ARCH_CONSENT_UPDATE
+      ARCH_CONSENT_UPDATE=$(capitalize $ARCH_CONSENT_UPDATE)
       if [ "$ARCH_CONSENT_UPDATE" = "Y" ]
       then
        echo "Downloading and applying updates.  Please wait..."
@@ -324,7 +364,6 @@ then
     fi
   fi
 
-
 # Determine if Distro is RHEL
 elif [ $(find_bin dnf) -gt 0 ]
 then
@@ -336,26 +375,12 @@ then
   then
     echo "Updates have been found."
     read -p "Would you like to view out of date packages? [Y/N]:  " RHEL_CONSENT_1
-    if [ "$RHEL_CONSENT_1" = "Y" ]
-    then
-      echo "Y" | pkexec dnf upgrade
-    elif [ "$RHEL_CONSENT_1" = "N" ]
-    then
-      echo "Not showing updates."
-    else
-      echo "ERROR:  User input undefined!  Defaulting to 'N'."
-    fi
+    RHEL_CONSENT_1=$(capitalize $RHEL_CONSENT_1)
+    dnf_list_updates $RHEL_CONSENT_1
     
     read -p "Would you like to update out of date packages? [Y/N]:  " RHEL_CONSENT_2
-    if [ "$RHEL_CONSENT_2" = "Y" ]
-    then
-      echo "Y" | pkexec dnf upgrade
-    elif [ "$RHEL_CONSENT_2" = "N" ]
-    then
-      echo "Not showing updates."
-    else
-      echo "ERROR:  User input undefined!  Defaulting to 'N'."
-    fi
+    RHEL_CONSENT_2=$(capitalize $RHEL_CONSENT_2)
+    dnf_upgrade $RHEL_CONSENT_2
   else
     echo "No updates at this time."
   fi
@@ -365,8 +390,9 @@ fi
 if [ $(find_bin snap) -gt 0 ]
 then
   echo
-  echo "Updating Snap Packages"
-  pkexec snap refresh
+  read -p "Would you like to update snap? [Y/N]:  " SNAP_CONSENT
+  SNAP_CONSENT=$(capitalize $SNAP_CONSENT)
+  snap_update $SNAP_CONSENT
 fi
 
 # *Optional* Upgrade Flatpak Packages
@@ -375,7 +401,7 @@ then
   echo
   read -p "Would you like to search for and apply Flatpak app updates? [Y/N]:  " FLATPAK_CONSENT
   echo "Updating and upgrading.  Please wait..."
-  FLATPAK_CONSENT=$(echo "$FLATPAK_CONSENT" | tr [a-z] [A-Z])
+  FLATPAK_CONSENT=$(capitalize $FLATPAK_CONSENT)
   flatpak_update $FLATPAK_CONSENT
 fi
 exit
